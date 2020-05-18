@@ -136,7 +136,7 @@ class ProbKernel:
             for i in range(self.p + self.q):
                 score[a, i] = add_smoothing(score[a, i], N, self.alpha)
 
-        # Computing total frequency of each letter
+        """# Computing total frequency of each letter
         total_freq = np.zeros(dim)
         for letter in self.alphabet:
             for seq in seq_train_batch:
@@ -150,6 +150,7 @@ class ProbKernel:
         for a in range(dim):
             for i in range(self.p + self.q):
                 score[a, i] = score[a, i] / total_freq[a]
+                """
 
         self.score_matrix = score
 
@@ -164,13 +165,13 @@ class ProbKernel:
         for iter in range(self.p + self.q):
             aux = self.score_matrix[self.d[seq_a[iter + ia]]][iter]
             if seq_a[iter + ia] == seq_b[iter + ib]:
-                kernel *= aux + aux * aux
+                kernel *= aux + aux * aux / 2
             else:
-                kernel *= aux * self.score_matrix[self.d[seq_b[iter + ib]]][iter]
+                kernel *= aux * self.score_matrix[self.d[seq_b[iter + ib]]][iter] / 2
 
         return kernel
 
-    def return_kernel_matrix(self, seq_train_batch, seq_test_batch=None, norm=None):
+    def return_kernel_matrix(self, seq_train_batch, seq_test_batch=None):
         # Computes kernel matrix for use in the sklearn.svm.SVC() class.
         if seq_test_batch is None:
             seq_test_batch = seq_train_batch
@@ -213,21 +214,18 @@ class ProbKernel:
                 itest += 1
             cont_test += ntest - wl
 
-        if norm is None:
-            norm_factor = np.amax(self.kernel_matrix) - np.amin(self.kernel_matrix)
-        else:
-            norm_factor = norm
-        print(norm_factor)
-        return self.kernel_matrix / norm_factor, norm_factor
+        return self.kernel_matrix
 
 
 if __name__ == "__main__":
-    p = 13
-    q = 2
+    # Hyperparameters
+    p = 3
+    q = 1
     C = 1
+
+    # Training and testing batches, small values for function verification
     ntrain = 50
     ntest = 20
-    params = [C]
 
     seq_list, cleav_pos = get_features(DATA_PATH + data_file)
     alphabet = return_alphabet(seq_list)
@@ -238,19 +236,13 @@ if __name__ == "__main__":
 
     prob_kernel = ProbKernel(p, q)
     prob_kernel.fit(seq_list[:ntrain], cleav_pos[:ntrain])
-    km, norm = prob_kernel.return_kernel_matrix(seq_list[:ntrain], seq_list[:ntrain])
-    estimator = SVC(C=0.00001, kernel='precomputed', class_weight='balanced')
-    #model = Model(estimator, params)
+    km = prob_kernel.return_kernel_matrix(seq_list[:ntrain], seq_list[:ntrain])
+    estimator = SVC(C=10, kernel='precomputed', class_weight='balanced')
     estimator.fit(km, Y_train)
-    km, _ = prob_kernel.return_kernel_matrix(seq_list[:ntrain], seq_list[ntrain:ntrain + ntest], norm)
+    km = prob_kernel.return_kernel_matrix(seq_list[:ntrain], seq_list[ntrain:ntrain + ntest])
     pred_y = estimator.predict(km)
 
     for metric in METRIC_LIST:
         mc = metric_callable(metric)
         print("({}, {})".format(metric, mc(Y_test, pred_y)))
 
-    # Getting features
-    # X, Y = get_encoded_features(DATA_PATH + data_file, p, q)
-
-    # Evaluating model
-    # score = model.evaluate(X, Y)

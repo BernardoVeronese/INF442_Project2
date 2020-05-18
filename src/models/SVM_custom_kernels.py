@@ -5,8 +5,8 @@ from sklearn.model_selection import train_test_split, KFold, cross_val_score, Gr
 from sklearn.svm import SVC, LinearSVC
 
 # Hyperparameters
-CV_k = 5
-max_iter = 5
+p=13
+q=2
 
 # Data processing
 data_path = "/Users/bernardoveronese/Documents/INF442/INF442_Project2/Datasets/"
@@ -40,40 +40,11 @@ def K3(U,V) :
                   count+=1
             W[k][j]=count
     return(W)           
-  
-
-def PredictionSimilarityKernel(train_d,train_l,test_d,test_l):
-    #trains a SVM with train_data labelled with train_labels, tests on test_data and computes accuracy
-    #fitting
-    #print("fitting...")
-    clf=svm.SVC(kernel=K1)
-    clf.fit(train_d,train_l)
-    #print("OK")
-
-    #computing accuracy
-    #print("predicting...")
-    accuracy=0
-    cont=0
-    for sequence in test_d :
-      predict=clf.predict(sequence.reshape(1,-1))[0]
-      if (predict==test_l[cont]) :
-        accuracy+=1
-      cont+=1
-    accuracy /= len(test_l)
-    #print("Accuracy computed with similarity kernel")
-    #print(str(100*accuracy)+" %")
-    return(accuracy)
-
-########################Substitution matrix
 
 #hyperparameters : substitution matrix and bandwidth
-
-
-path="C:/Users/antoi/OneDrive/Bureau/Polytechnique-2A/P3/INF 422/PI/INF442_Project2-master/src/data/Substitution matrices/IDENTITY" #change it to your convenience to choose one of the matrices
-
+path="C:/Users/antoi/OneDrive/Bureau/Polytechnique-2A/P3/INF 422/PI/INF442_Project2-master/src/data/Substitution matrices/IDENTITY" #change it to your convenience to choose one of the matrices"
 M=get_similarity_matrix(path,d)
 print(M)
-
 gamma=0.1
 
 #Score
@@ -96,28 +67,44 @@ def K2(U,V) :
             W[k][j]=s(U[k],V[j])
     return(W)
 
-def PredictionSimilarityMatrixKernel(train_d,train_l,test_d,test_l):
-    #trains a SVM with train_data labelled with train_labels, tests on test_data and computes accuracy
-    #print("fitting ...")
-    rbf=svm.SVC(kernel=K2)
-    rbf.fit(train_d,train_l)
-    #print("OK")
+###Prediction with a given kernel
 
-    #print("predicting...")
-    accuracy=0
+    
+def PredictionCustomKernel(train_d,train_l,test_d,test_l):
+    #trains a SVM with train_data labelled with train_labels, tests on test_data and computes accuracy
+    #fitting
+    print("fitting...")
+    clf=svm.SVC(kernel=K2)#change to your convenience
+    clf.fit(train_d,train_l)
+    print("OK")
+
+    #computing accuracy
+    print("predicting...")
+    TP=0
+    FP=0
+    FN=0
+    TN=0
     cont=0
     for sequence in test_d :
-      predict=rbf.predict(sequence.reshape(1,-1))[0]
-      print(str(predict)+"vs. "+str(test_l[cont]))
-      if (predict==test_l[cont]) :
-        accuracy+=1
+      predict=clf.predict(sequence.reshape(1,-1))[0]
+      if (predict==test_l[cont]) and (test_l[cont]==1) :
+          TP+=1
+          print("true positive")
+      elif (predict==test_l[cont]) and (test_l[cont]!=1):
+          TN+=1
+      elif (predict!=test_l[cont]) and (test_l[cont]!=1):
+          FP+=1
+          print("false positive")
+      elif (predict!=test_l[cont]) and (test_l[cont]==1):
+          FN+=1
+          print("false negative")
       cont+=1
-    accuracy /= len(test_d)
-
-    return(accuracy)
-    #print("Accuracy computed with substitution matrix")
-    #print(str(100*accuracy)+" %")
-
+    print(p)
+    print(q)
+    F1=(float(TP)/float(TP+FN+FP))
+    print("F1 score computed :"+str(F1))
+    balanced_accuracy=0.5*((float(TP)/float(TP+FP))+(float(TN)/float(TN+FN)))
+    print("balanced_accuracy computed :"+str(balanced_accuracy))    
 
 if __name__ == "__main__":
 
