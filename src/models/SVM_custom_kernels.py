@@ -86,7 +86,7 @@ def PredictionCustomKernel(train_d,train_l,test_d,test_l):
     TN=0
     cont=0
     for sequence in test_d :
-      predict=-clf.predict(sequence.reshape(1,-1))[0]
+      predict=clf.predict(sequence.reshape(1,-1))[0]
       if (predict==test_l[cont]) and (test_l[cont]==1) :
           TP+=1
           print("true positive")
