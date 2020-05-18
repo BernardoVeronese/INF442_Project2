@@ -11653,3 +11653,131 @@ Score summary:
 	 balanced_accuracy : 75.293 %
 	 f1 : 57.318 %
 	 roc_auc : 94.072 %
+----------------------------------------------------------------------
+Dataset: SIG_13
+Estimator: SVC_rbf
+Model assessment method: 5-fold cross-validation 
+Hyperparameters: 
+	 p = 1
+	 q = Default
+	 C = Default
+	 gamma = Default
+Score summary: 
+	 balanced_accuracy : 80.226 %
+	 f1 : 57.704 %
+	 roc_auc : 94.179 %
+----------------------------------------------------------------------
+Dataset: SIG_13
+Estimator: SVC_rbf
+Model assessment method: 5-fold cross-validation 
+Hyperparameters: 
+	 p = 1
+	 q = Default
+	 C = Default
+	 gamma = Default
+Score summary: 
+	 balanced_accuracy : 87.162 %
+	 f1 : 36.196 %
+	 roc_auc : 94.061 %
+----------------------------------------------------------------------
+Dataset: SIG_13
+Estimator: SVC_linear
+Model assessment method: 5-fold cross-validation 
+Hyperparameters: 
+	 p = 0.5
+	 q = Default
+	 C = Default
+Score summary: 
+	 balanced_accuracy : 88.131 %
+	 f1 : 30.161 %
+	 roc_auc : 94.756 %
+----------------------------------------------------------------------
+Dataset: SIG_13
+Estimator: SVC_linear
+Model assessment method: 5-fold cross-validation 
+Hyperparameters: 
+	 p = 0.5
+	 q = Default
+	 C = Default
+Score summary: 
+	 balanced_accuracy : 88.131 %
+	 f1 : 30.161 %
+	 roc_auc : 94.756 %
+----------------------------------------------------------------------
+Dataset: SIG_13
+Estimator: SVC_rbf
+Model assessment method: 5-fold cross-validation 
+Hyperparameters: 
+	 p = 0.5
+	 q = Default
+	 C = Default
+	 gamma = Default
+Score summary: 
+	 balanced_accuracy : 81.980 %
+	 f1 : 57.096 %
+	 roc_auc : 94.791 %
+----------------------------------------------------------------------
+Dataset: SIG_13
+Estimator: SVC_poly
+Model assessment method: 5-fold cross-validation 
+Hyperparameters: 
+	 p = 0.5
+	 q = Default
+	 C = Default
+	 gamma = Default
+Score summary: 
+	 balanced_accuracy : 80.591 %
+	 f1 : 54.870 %
+	 roc_auc : 94.023 %
+----------------------------------------------------------------------
+Dataset: SIG_13
+Estimator: SVC_sigmoid
+Model assessment method: 5-fold cross-validation 
+Hyperparameters: 
+	 p = 0.5
+	 q = Default
+	 C = Default
+	 gamma = Default
+Score summary: 
+	 balanced_accuracy : 88.246 %
+	 f1 : 27.182 %
+	 roc_auc : 94.630 %
+----------------------------------------------------------------------
+Dataset: SIG_13
+Estimator: SVC_sigmoid
+Model assessment method: 5-fold cross-validation 
+Hyperparameters: 
+	 p = 0.5
+	 q = Default
+	 C = Default
+	 gamma = Default
+Score summary: 
+	 balanced_accuracy : nan %
+	 f1 : nan %
+	 roc_auc : nan %
+----------------------------------------------------------------------
+Dataset: SIG_13
+Estimator: SVC_sigmoid
+Model assessment method: 5-fold cross-validation 
+Hyperparameters: 
+	 p = 0.5
+	 q = Default
+	 C = Default
+	 gamma = Default
+Score summary: 
+	 balanced_accuracy : nan %
+	 f1 : nan %
+	 roc_auc : nan %
+----------------------------------------------------------------------
+Dataset: SIG_13
+Estimator: SVC_rbf
+Model assessment method: 5-fold cross-validation 
+Hyperparameters: 
+	 p = 14
+	 q = 1
+	 C = 0.5
+	 gamma = Default
+Score summary: 
+	 balanced_accuracy : 59.206 %
+	 f1 : 30.195 %
+	 roc_auc : 94.165 %

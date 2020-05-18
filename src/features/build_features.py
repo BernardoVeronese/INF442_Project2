@@ -2,7 +2,7 @@ from collections import Counter
 import numpy as np
 
 
-def read_sequence(filepath):
+def read_sequence(filepath, labels=True):
     """
     Return the list of protein sequences and cleavage sites from datapath.
 
@@ -24,7 +24,8 @@ def read_sequence(filepath):
         while f.readline() is not '':
             # Slicing with :-1 to discard "\n" character
             protein_sequence.append(f.readline()[:-1])
-            cleavage_site.append(f.readline()[:-1])
+            if labels:
+                cleavage_site.append(f.readline()[:-1])
 
     return protein_sequence, cleavage_site
 
@@ -53,25 +54,24 @@ def get_similarity_matrix(filepath, d):
     d is the dictionnary for the equivalence letters<->numbers, which is not guaranteed to be the 'natural one'
     """
 
-    
-    M=np.eye(23,23)
+    M = np.eye(23, 23)
     with open(filepath, 'r') as f:
-        #discards description lines
-        for i in range (6) :
+        # discards description lines
+        for i in range(6):
             f.readline()
-        #we must remember the 7th line
-        column_entries=f.readline()
+        # we must remember the 7th line
+        column_entries = f.readline()
         print(column_entries)
-        #then fill the matrix
-        line=f.readline()
-        while (line!=''):
-            letter1=line[0]
-            if (letter1 in d):
-                for i in range(1,len(line)-1) :#not reading the last character which is \n
-                    if (column_entries[i] in d) :
-                        M[d[letter1]][d[column_entries[i]]]=line[i]
-            line=f.readline()
-    return(M)
+        # then fill the matrix
+        line = f.readline()
+        while line != '':
+            letter1 = line[0]
+            if letter1 in d:
+                for i in range(1, len(line) - 1):  # not reading the last character which is \n
+                    if column_entries[i] in d:
+                        M[d[letter1]][d[column_entries[i]]] = line[i]
+            line = f.readline()
+    return (M)
 
 
 def return_alphabet(sequence_list):
@@ -109,11 +109,14 @@ def return_cleavpos(cleavage_list):
     return np.array(position_list)
 
 
-def get_features(filepath):
-    sequence_list, cleavage_site = read_sequence(filepath)
-    cleavage_pos = return_cleavpos(cleavage_site)
+def get_features(filepath, labels=True):
+    sequence_list, cleavage_site = read_sequence(filepath, labels)
     sequence_list = np.array(sequence_list)
-    return sequence_list, cleavage_pos
+    if labels:
+        cleavage_pos = return_cleavpos(cleavage_site)
+        return sequence_list, cleavage_pos
+    else:
+        return sequence_list
 
 
 def dict_from_alphabet(alphabet):
@@ -129,7 +132,7 @@ def dict_from_alphabet(alphabet):
         return None
 
 
-def seq_list_encoding(sequence_list, cleav_pos, p, q, alphabet, ignore_first=True):
+def seq_list_encoding(sequence_list, p, q, alphabet, cleav_pos=None, ignore_first=True):
     """
     Return the list of all possible subsequence of aminoacids of fixed length word_length in a given list of protein
     sequences.
@@ -151,10 +154,11 @@ def seq_list_encoding(sequence_list, cleav_pos, p, q, alphabet, ignore_first=Tru
     encoded_sequence = np.zeros((encoding_length, word_length * dim))
 
     # Target labels start with -1 as default as it is the most common
-    target_labels = np.ones(encoding_length, dtype=int) * (-1)
+    if cleav_pos is not None:
+        target_labels = np.ones(encoding_length, dtype=int) * (-1)
 
     # Returns the predicted position of the cleavage site for a specific subsequence. Useful for accuracy comparison
-    predicted_pos = np.zeros(encoding_length, dtype=int)
+    predicted_pos = np.zeros((encoding_length, 2), dtype=int)
     d = dict_from_alphabet(alphabet)
 
     # Iterates over the new arrays
@@ -174,19 +178,33 @@ def seq_list_encoding(sequence_list, cleav_pos, p, q, alphabet, ignore_first=Tru
                 encoded_sequence[feature_iter][index] = 1
 
             # Updating target label value and predicted cleavage position value
-            predicted_pos[feature_iter] = seq_iter + ig + p
-            if cleav_pos[cp_iter] == seq_iter + ig + p:
-                target_labels[feature_iter] = 1
+            predicted_pos[feature_iter][0] = cp_iter
+            predicted_pos[feature_iter][1] = seq_iter + ig + p
+
+            if cleav_pos is not None:
+                if cleav_pos[cp_iter] == seq_iter + ig + p:
+                    target_labels[feature_iter] = 1
 
             feature_iter += 1
 
-    return encoded_sequence, target_labels, predicted_pos
+    if cleav_pos is None:
+        return encoded_sequence, predicted_pos
+    else:
+        return encoded_sequence, target_labels, predicted_pos
 
 
-def get_encoded_features(filepath, p, q):
-    sequence_list, cleav_pos = get_features(filepath)
+def get_encoded_features(filepath, p, q, labels=True):
+    # Get features and transform them into numpy arrays.
+    if labels:
+        sequence_list, cleav_pos = get_features(filepath, labels)
+    else:
+        sequence_list = get_features(filepath, labels)
     alphabet = return_alphabet(sequence_list)
-    return seq_list_encoding(sequence_list, cleav_pos, p, q, alphabet)
+    if labels:
+        return seq_list_encoding(sequence_list, p, q, alphabet, cleav_pos)
+    else:
+        return seq_list_encoding(sequence_list, p, q, alphabet, None)
+
 
 def seq_list_encoding2(sequence_list, cleav_pos, p, q, alphabet):
     """
@@ -206,7 +224,7 @@ def seq_list_encoding2(sequence_list, cleav_pos, p, q, alphabet):
         for seq_iter in range(len(sequence_list[cp_iter]) - word_length):
             wordarray = np.zeros(word_length)
             for word_iter in range(word_length):
-                wordarray[word_iter]=d[sequence_list[cp_iter][seq_iter + word_iter]]
+                wordarray[word_iter] = d[sequence_list[cp_iter][seq_iter + word_iter]]
             encoding_list.append(wordarray)
             if cleav_pos[cp_iter] == seq_iter + p:
                 cls_cleav_pos.append(1)
@@ -215,18 +233,9 @@ def seq_list_encoding2(sequence_list, cleav_pos, p, q, alphabet):
 
     return np.array(encoding_list), np.array(cls_cleav_pos)
 
+
 def get_encoded_features2(filepath, p, q):
     sequence_list, cleav_pos = get_features(filepath)
     alphabet = return_alphabet(sequence_list)
     return seq_list_encoding2(sequence_list, cleav_pos, p, q, alphabet)
 
-"""if __name__ == "__main__":
-    # Functionality testing
-    data_path = "/Users/bernardoveronese/Documents/INF442/INF442_Project2/Datasets/"
-    data_file = "EUKSIG_13.red.txt"
-    seq, cleav = read_sequence(data_path + data_file)
-    arr = return_cleavpos(cleav)
-    print(arr)
-    alphabet = return_alphabet(seq)
-    print(alphabet)
-    print(dim)"""

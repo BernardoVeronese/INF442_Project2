@@ -1,17 +1,18 @@
 from src.models.Model import Model
 from sklearn.svm import SVC
+from sklearn.model_selection import train_test_split
 from src.models.PositionScoringMatrix import PosScoringMatrix
 from src.models.SVM_standard_kernels import get_kernel_choice
 from src.utils import *
 from src.features.build_features import *
+from src.models.Estimator import metric_callable
 
 # Datafile
-data_file = "EUKSIG_13.red.txt"
+data_file = "SIG_13.red.txt"
 
 # Hyperparamaters
-p = 11
-q = 4
-C = 1
+p = 14
+q = 1
 
 
 def choose_estimator(kernel=None, *args, **kwargs):
@@ -52,32 +53,26 @@ def choose_estimator(kernel=None, *args, **kwargs):
 
 if __name__ == '__main__':
     # Hyperparameters
-    params = [C]
-    paramgrid = {'C': np.logspace(-4, -1, num=2, base=2),
-                 'gamma' : np.logspace(-3, 2, num=5, base=10)}
-    paramgrid_poly = {'C': np.logspace(-4, 0, num=5, base=2),
-                      'degree': [1, 2, 3, 4, 5]
-                      }
-    # Optional keyword arguments
-    class_weight = {'class_weight': 'balanced'}
-    kernel_list = ['rbf']
+    C = 0.5
+    params = [p, q, C]
 
-    # Defining estimator and model
-    for kernel in kernel_list:
-        try:
-            estimator = SVC(kernel=kernel, class_weight='balanced')
-            model = Model(estimator, params)
+    # Estimator parameters need to be filled in by hand
+    estimator = choose_estimator(C=C, class_weight = 'balanced') # Change at will
+    model = Model(estimator, params)
 
-            # Getting features
-            X, Y = get_encoded_features(DATA_PATH + data_file, p, q)
+    # Getting features
+    X, Y, _ = get_encoded_features(DATA_PATH + data_file, p, q)
+    X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size=0.2, random_state=0)
 
-            # Evaluating model
-            score = model.evaluate(X, Y)
-            if kernel == 'poly':
-                search_grid = model.search(X, Y, paramgrid_poly)
-            else:
-                search_grid = model.search(X, Y, paramgrid)
-            print(search_grid.cv_results_)
-        except:
-            # Not ideal, but we don't want to spoil hours of calculation...
-            print("Error was raised.")
+    # Evaluating model
+    print("Evaluating model...")
+    score = model.evaluate(X_train, Y_train)
+    print("Finished model evaliation.")
+    estimator.fit(X_train, Y_train)
+    pred = estimator.predict(X_test)
+    for metric in METRIC_LIST:
+        mc = metric_callable(metric)
+        print("Classifier: " + model.estimator_name)
+        print("{} score = {:.2f}".format(metric, mc(Y_test, pred)))
+
+

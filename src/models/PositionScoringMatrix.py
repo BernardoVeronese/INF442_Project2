@@ -211,7 +211,7 @@ if __name__ == "__main__":
     seq_list, cleavpos = get_features(DATA_PATH + data_file)
     X_train, X_test, Y_train, Y_test = train_test_split(seq_list, cleavpos, test_size=test_size, random_state=0)
 
-
+    # Defining p x q grid
     p_list = np.arange(p_max - 1)
     q_list = np.arange(q_max - 1)
     matrix_dict = dict(zip(METRIC_LIST, [np.zeros((p_max - 1, q_max - 1)) for i in range(len(METRIC_LIST))]))
@@ -226,8 +226,8 @@ if __name__ == "__main__":
                 matrix_dict[metric][pp][qq] = score[metric]
 
     # Plotting heatmaps
-    p_string = ["p="+str(p+1) for p in p_list]
-    q_string = ["q=" + str(q+1) for q in q_list]
+    p_string = ["p=" + str(p + 1) for p in p_list]
+    q_string = ["q=" + str(q + 1) for q in q_list]
     for metric in METRIC_LIST:
         fig, ax = plt.subplots()
 

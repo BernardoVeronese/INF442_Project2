@@ -1,6 +1,6 @@
 from sklearn.metrics import accuracy_score, balanced_accuracy_score, roc_auc_score, precision_score, recall_score, \
     f1_score
-from sklearn.model_selection import train_test_split, KFold, StratifiedKFold, check_cv
+from sklearn.model_selection import check_cv
 from warnings import warn
 import abc
 import numpy as np
@@ -27,8 +27,12 @@ def metric_callable(metric):
 
 
 class Estimator:
-    """Super-class for custom estimators."""
+    """Super-class for custom estimators.
 
+    Currently, the only estimator that derives from it is the Position Specific Scoring Matrix.
+    """
+
+    # Abstract methods
     __metaclass__ = abc.ABCMeta
 
     def __init__(self, p, q, write_log=True):
@@ -66,6 +70,28 @@ class Estimator:
         pass
 
     def score(self, X_train, Y_raw, cv=5, scoring=METRIC_LIST):
+        """
+        Compute model scores for training data with cross-validation.
+
+
+        Parameters
+        ----------
+
+        X_train: list
+            Training data. Accepts non-integer types such as protein sequences.
+        Y_raw: list
+            Target labels for training data.
+        cv: int, defaults to 5
+            Number of folds in cross-validation. This method uses sklearn's check_cv function to return a
+            cross-validator object. The default cross-validation in check_cv (and the one used here).
+            method is StratifiedKFold.
+        scoring: list or str, defaults to ['balanced_accuracy, 'f1', 'roc_auc']
+            One (or more) scoring metrics for performance evaluation.
+
+        Returns
+        -------
+        A dictionary with the mean score for each metric defined in scoring.
+        """
         metric_list = []
 
         if isinstance(scoring, list):
